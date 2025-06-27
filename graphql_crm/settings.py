@@ -54,10 +54,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'graphql_crm.urls'
 
-# Graphene configuration
 GRAPHENE = {
-    "SCHEMA": "graphql_crm.schema.schema"  # This points to the file graphql_crm/schema.py
+    "SCHEMA": "schema.schema"  # Refers to alx-backend-graphql_crm/schema.py
 }
+
 
 
 TEMPLATES = [
