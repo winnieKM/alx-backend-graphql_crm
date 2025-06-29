@@ -1,8 +1,6 @@
 from django.db import models
 
 # Create your models here.
-<<<<<<< HEAD
-=======
 class Customer(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
@@ -21,4 +19,3 @@ class Order(models.Model):
  # Create your models here.
 
 
->>>>>>> d0d88782b89381fe2851beafbb18ec9a573ec273
