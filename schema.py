@@ -1,3 +1,6 @@
+# alx-backend-graphql_crm/schema.py
+
+
 import graphene
 
 class Query(graphene.ObjectType):

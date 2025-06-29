@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 URL configuration for graphql_crm project.
 
@@ -14,6 +15,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.urls import path
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
