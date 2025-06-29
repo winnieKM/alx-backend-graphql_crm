@@ -1,5 +1,9 @@
-# settings.py
+INSTALLED_APPS = [
+    ...
+    "graphene_django",
+    "crm",
+]
 
 GRAPHENE = {
-    "SCHEMA": "schema.schema"  # NOT graphql_crm.schema.schema
+    "SCHEMA": "graphql_crm.schema.schema"
 }
