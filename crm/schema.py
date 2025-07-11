@@ -29,7 +29,6 @@ class OrderType(DjangoObjectType):
         filter_fields = []
         interfaces = (graphene.relay.Node,)
 
-
 # ------------------ Filters ------------------ #
 class CustomerFilter(FilterSet):
     name = CharFilter(field_name='name', lookup_expr='icontains')
@@ -68,7 +67,6 @@ class OrderFilter(FilterSet):
     class Meta:
         model = Order
         fields = []
-
 
 # ------------------ Inputs ------------------ #
 class CustomerInput(graphene.InputObjectType):
@@ -183,20 +181,28 @@ class CreateOrder(graphene.Mutation):
 
         return CreateOrder(order=order)
 
+class UpdateLowStockProducts(graphene.Mutation):
+    success = graphene.Boolean()
+    message = graphene.String()
+    updated_products = graphene.List(graphene.String)
+
+    def mutate(self, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_names = []
+
+        for product in low_stock_products:
+            product.stock += 10
+            product.save()
+            updated_names.append(f"{product.name} (new stock: {product.stock})")
+
+        return UpdateLowStockProducts(
+            success=True,
+            message="Low-stock products restocked.",
+            updated_products=updated_names
+        )
+
 # ------------------ Root Mutation ------------------ #
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
-    create_order = CreateOrder.Field()
-
-# ------------------ Root Query ------------------ #
-class Query(graphene.ObjectType):
-    all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
-    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
-    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
-
-    ping = graphene.String()
-
-    def resolve_ping(self, info):
-        return "pong"
