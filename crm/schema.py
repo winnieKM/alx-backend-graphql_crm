@@ -12,21 +12,18 @@ class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
         fields = '__all__'
-        filter_fields = []
         interfaces = (graphene.relay.Node,)
 
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
         fields = '__all__'
-        filter_fields = []
         interfaces = (graphene.relay.Node,)
 
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
         fields = '__all__'
-        filter_fields = []
         interfaces = (graphene.relay.Node,)
 
 # ------------------ Filters ------------------ #
@@ -181,6 +178,7 @@ class CreateOrder(graphene.Mutation):
 
         return CreateOrder(order=order)
 
+# ✅ NEW: UpdateLowStockProducts Mutation
 class UpdateLowStockProducts(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
@@ -191,9 +189,9 @@ class UpdateLowStockProducts(graphene.Mutation):
         updated_names = []
 
         for product in low_stock_products:
-            product.stock += 10
+            product.stock += 10  # simulate restocking
             product.save()
-            updated_names.append(f"{product.name} (new stock: {product.stock})")
+            updated_names.append(product.name)
 
         return UpdateLowStockProducts(
             success=True,
@@ -206,3 +204,19 @@ class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
+    create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()  # ✅ Include this
+
+# ------------------ Root Query ------------------ #
+class Query(graphene.ObjectType):
+    all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
+    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
+    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
+
+    ping = graphene.String()
+
+    def resolve_ping(self, info):
+        return "pong"
+
+# ------------------ Schema ------------------ #
+schema = graphene.Schema(query=Query, mutation=Mutation)
