@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Get current working directory of this script
+# Get current working directory (cwd) of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/../.." || exit 1  # Go to Django project root
+cd "$SCRIPT_DIR/../.." || exit 1  # Move to Django project root
 
 # Use full path to Python from virtualenv
 PYTHON="/c/Users/SmallShepherd/Desktop/back end winnie kathomi/alx-backend-graphql_crm/.venv/Scripts/python.exe"
