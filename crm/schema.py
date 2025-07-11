@@ -1,11 +1,13 @@
+# crm/schema.py
+
 import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import FilterSet, CharFilter, NumberFilter, DateFilter
-from .models import Customer, Product, Order
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from decimal import Decimal
+from .models import Customer, Product, Order
 
 # ------------------ Types ------------------ #
 class CustomerType(DjangoObjectType):
@@ -99,7 +101,6 @@ class CreateCustomer(graphene.Mutation):
                 email=input.email,
                 phone=input.phone or ""
             )
-
             return CreateCustomer(customer=customer, message="Customer created successfully")
         except ValidationError:
             raise Exception("Invalid email format")
@@ -129,7 +130,6 @@ class BulkCreateCustomers(graphene.Mutation):
                 customers.append(customer)
             except Exception as e:
                 errors.append(str(e))
-
         return BulkCreateCustomers(customers=customers, errors=errors)
 
 class CreateProduct(graphene.Mutation):
@@ -178,45 +178,40 @@ class CreateOrder(graphene.Mutation):
 
         return CreateOrder(order=order)
 
-# ✅ NEW: UpdateLowStockProducts Mutation
 class UpdateLowStockProducts(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
     updated_products = graphene.List(graphene.String)
 
     def mutate(self, info):
-        low_stock_products = Product.objects.filter(stock__lt=10)
-        updated_names = []
-
-        for product in low_stock_products:
-            product.stock += 10  # simulate restocking
-            product.save()
-            updated_names.append(product.name)
+        low_stock = Product.objects.filter(stock__lt=10)
+        updated = []
+        for p in low_stock:
+            p.stock += 10
+            p.save()
+            updated.append(p.name)
 
         return UpdateLowStockProducts(
             success=True,
-            message="Low-stock products restocked.",
-            updated_products=updated_names
+            message=f"Updated {len(updated)} products",
+            updated_products=updated
         )
 
-# ------------------ Root Mutation ------------------ #
+# ------------------ Root ------------------ #
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
-    update_low_stock_products = UpdateLowStockProducts.Field()  # ✅ Include this
+    update_low_stock_products = UpdateLowStockProducts.Field()
 
-# ------------------ Root Query ------------------ #
 class Query(graphene.ObjectType):
     all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
     all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
     all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
-
     ping = graphene.String()
 
     def resolve_ping(self, info):
         return "pong"
 
-# ------------------ Schema ------------------ #
 schema = graphene.Schema(query=Query, mutation=Mutation)
