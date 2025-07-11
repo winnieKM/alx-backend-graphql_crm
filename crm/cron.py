@@ -1,25 +1,31 @@
 import datetime
-import requests
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 
 def log_crm_heartbeat():
-    # Timestamp in required format
     timestamp = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-    log_message = f"{timestamp} CRM is alive\n"
+    message = f"{timestamp} CRM is alive\n"
 
-    # Append log to file
     with open("/tmp/crm_heartbeat_log.txt", "a") as log_file:
-        log_file.write(log_message)
+        log_file.write(message)
 
-    # Optional: Check if GraphQL endpoint is responsive
+    # GraphQL hello query
+    transport = RequestsHTTPTransport(
+        url="http://localhost:8000/graphql",
+        verify=True,
+        retries=3,
+    )
+
+    client = Client(transport=transport, fetch_schema_from_transport=True)
+
+    query = gql("""
+    query {
+        hello
+    }
+    """)
+
     try:
-        response = requests.post(
-            "http://localhost:8000/graphql",
-            json={"query": "{ hello }"},
-            headers={"Content-Type": "application/json"}
-        )
-        if response.status_code == 200:
-            print("GraphQL hello query succeeded.")
-        else:
-            print(f"GraphQL query failed with status code {response.status_code}")
+        response = client.execute(query)
+        print("GraphQL hello response:", response)
     except Exception as e:
-        print(f"GraphQL check failed: {e}")
+        print(f"GraphQL error: {e}")
