@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,6 +10,9 @@ SECRET_KEY = 'your-secret-key'
 
 # SECURITY WARNING: don’t run with debug turned on in production!
 DEBUG = True
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
 
 ALLOWED_HOSTS = []
 
@@ -21,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_crontab',
+    'django_celery_beat',
 
 
     # Third-party apps
@@ -109,4 +114,10 @@ GRAPHENE = {
 # ✅ Django Filter Backend
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
+CELERY_BEAT_SCHEDULE = {
+    'generate-crm-report': {
+        'task': 'crm.tasks.generate_crm_report',
+        'schedule': crontab(day_of_week='mon', hour=6, minute=0),
+    },
 }

@@ -5,17 +5,10 @@ from datetime import datetime
 
 @shared_task
 def generate_crm_report():
-    # Setup the GraphQL client
-    transport = RequestsHTTPTransport(
-        url="http://localhost:8000/graphql",
-        verify=False,
-        retries=3,
-    )
-
+    transport = RequestsHTTPTransport(url='http://localhost:8000/graphql', verify=False, retries=3)
     client = Client(transport=transport, fetch_schema_from_transport=True)
 
-    # Define GraphQL query
-    query = gql("""
+    query = gql('''
         query {
             allCustomers {
                 totalCount
@@ -29,28 +22,16 @@ def generate_crm_report():
                 }
             }
         }
-    """)
+    ''')
 
-    try:
-        result = client.execute(query)
+    result = client.execute(query)
 
-        # Extract data
-        total_customers = result['allCustomers']['totalCount']
-        total_orders = result['allOrders']['totalCount']
-        total_revenue = sum(
-            float(order['node']['totalAmount']) for order in result['allOrders']['edges']
-        )
+    total_customers = result['allCustomers']['totalCount']
+    total_orders = result['allOrders']['totalCount']
+    total_revenue = sum(float(order['node']['totalAmount']) for order in result['allOrders']['edges'])
 
-        # Format and log the report
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        log_message = f"{timestamp} - Report: {total_customers} customers, {total_orders} orders, {total_revenue:.2f} revenue"
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    log_line = f"{timestamp} - Report: {total_customers} customers, {total_orders} orders, {total_revenue} revenue\n"
 
-        with open("/tmp/crm_report_log.txt", "a") as f:
-            f.write(log_message + "\n")
-
-        print("CRM report generated successfully!")
-
-    except Exception as e:
-        with open("/tmp/crm_report_log.txt", "a") as f:
-            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Error generating report: {str(e)}\n")
-        print("Failed to generate CRM report")
+    with open("/tmp/crm_report_log.txt", "a") as f:
+        f.write(log_line)
